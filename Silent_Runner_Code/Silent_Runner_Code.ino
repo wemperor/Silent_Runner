@@ -33,6 +33,13 @@ int ServoLout = 90; //Servo fin stern left
 int ServoRout = 90; //Servo fin stern right
 int ServoUout = 90; //Servo fin stern up
 
+//max range of the servos
+#define MIN_A 10
+#define MAX_A 170
+#define MAX_DEG 90  
+
+#define A500TO90FACT 0.18
+
 void setup()
 {
 
@@ -59,9 +66,9 @@ void loop()
   Rotation -= readings_CH2[index];
   Xaxis -= readings_CH3[index];
 
-  double Thrust_tmp = (((long)pulseIn(CH1pin, HIGH))-1500) / 500.0; //retrieves the receiver signals and maps to -1 to 1
-  double Rotation_tmp = (((long)pulseIn(CH2pin, HIGH))-1500) / 500.0; 
-  double Xaxis_tmp = (((long)pulseIn(CH3pin, HIGH))-1500) / 500.0; 
+  double Thrust_tmp = (((long)pulseIn(CH1pin, HIGH))-1500) * A500TO90FACT; //retrieves the receiver signals and maps to -90 to 90
+  double Rotation_tmp = (((long)pulseIn(CH2pin, HIGH))-1500) * A500TO90FACT; 
+  double Xaxis_tmp = (((long)pulseIn(CH3pin, HIGH))-1500) * A500TO90FACT; 
 
   Thrust += Thrust_tmp;
   Rotation += Rotation_tmp;
@@ -72,7 +79,7 @@ void loop()
   readings_CH3[index] = Xaxis_tmp;
   index = (index + 1) % numReadings;
 
-  Motorsout = (Thrust * 90);
+  Motorsout = (br(Thrust) * 90);
 
   /* Control Matrix for inverted Y fins
    
@@ -81,9 +88,9 @@ void loop()
    ServoRight  |    +      |    -    |
    ServoUp     |    -      |   N/A   |     */
 
-  ServoLout = (((0.5 * Rotation) + Xaxis) * 90); //calculation of maneuvers
-  ServoRout = (((0.5 * Rotation) - Xaxis) * 90);
-  ServoUout = (-Rotation * 90);
+  ServoLout = ((0.5 * br(Rotation)) + br(Xaxis)); //calculation of maneuvers
+  ServoRout = ((0.5 * br(Rotation)) - br(Xaxis));
+  ServoUout = (-br(Rotation));
 
   Motors.write(forServo(Motorsout)); //sends commando to the servos
   ServoL.write(forServo(ServoLout));
@@ -93,12 +100,13 @@ void loop()
 } //loop end
 
 
+// by readings 
+inline double br(double in) {
+  return in / numReadings;
+}
+
+
 inline long forServo(int s) {
-
-  byte MIN_A = 10;
-  byte MAX_A = 170;
-  byte MAX_DEG = 90;  //max range of the servos
-
   if (s >= MAX_DEG) {
     s = MAX_DEG;
   } //Setzt 90Â° als Obergrenze fÃ¼r den Servoausschlag
@@ -106,7 +114,6 @@ inline long forServo(int s) {
     s = -MAX_DEG;
   } //Setzt -90Â° als Untergrenze fÃ¼r den Servoausschlag
   return map(s,-MAX_DEG,MAX_DEG,MIN_A,MAX_A); //bringt die Werte in den korrekten Bereich von -90 bis 90 zu 10 bis 170
-
 }
 
 
