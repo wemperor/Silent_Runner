@@ -1,11 +1,7 @@
-//02 Smoothing embedded
-//03 flying curves by the motor thrust included
-//03 blinking LED on Pin 8 included
-
 #include <Servo.h>
 
-Servo MotorL;  //Motor left
-Servo MotorR;  //Motor right
+//defines the servo object
+Servo Motors;  //Motor left
 Servo ServoL;  //Servo fin stern left
 Servo ServoR;  //Servo fin stern right
 Servo ServoU;  //Servo fin stern up
@@ -14,13 +10,11 @@ Servo ServoU;  //Servo fin stern up
 #define CH2pin 4 //CH2 = Left/Right Channel
 #define CH3pin 7 //CH3 = Up/Down Channel
 
-#define MotorLpin 3 //Motor left
-#define MotorRpin 5 //Motor right
-#define ServoLpin 6 //Servo fin stern left
-#define ServoRpin 9 //Servo fin stern right
-#define ServoUpin 10 //Servo fin stern up
-
-#define LEDpin 8 //define the pin for blinking LED´s
+//defines the servo pins, they must be PWM
+#define Motorspin 3 //Motor left
+#define ServoLpin 5 //Servo fin stern left
+#define ServoRpin 6 //Servo fin stern right
+#define ServoUpin 9 //Servo fin stern up
 
 // stuff for value correction via averaging
 const int numReadings = 4; //chose high values for smoother but slower control
@@ -34,13 +28,7 @@ double Thrust;
 double Rotation;
 double Xaxis; 
 
-//variables for the LED Blinking
-long previousMillis = 0; 
-long interval = 1000; 
-int ledState = LOW;
-
-int MotorLout = 10; //Motor left
-int MotorRout = 10; //Motor right
+int Motorsout = 10; //Motor left
 int ServoLout = 90; //Servo fin stern left
 int ServoRout = 90; //Servo fin stern right
 int ServoUout = 90; //Servo fin stern up
@@ -48,8 +36,7 @@ int ServoUout = 90; //Servo fin stern up
 void setup()
 {
 
-  MotorL.attach(MotorLpin);//attaches the Servos and ESC´s
-  MotorR.attach(MotorRpin);
+  Motors.attach(Motorspin);//attaches the Servos and ESC´s
   ServoL.attach(ServoLpin);
   ServoR.attach(ServoRpin);
   ServoU.attach(ServoUpin);
@@ -57,21 +44,17 @@ void setup()
   pinMode(CH1pin, INPUT); //defines the input pins
   pinMode(CH2pin, INPUT);
   pinMode(CH3pin, INPUT);
-  
-  pinMode(LEDpin, OUTPUT);
-  
+
   //setting the smoothing arrays to zero
   for (int thisReading = 0; thisReading < numReadings; thisReading++) {
     readings_CH1[thisReading] = 0.0;
     readings_CH2[thisReading] = 0.0;
     readings_CH3[thisReading] = 0.0;
   }
-
-}
+} //setup end
 
 void loop()
 {
-
   Thrust -= readings_CH1[index]; //smoothing stuff
   Rotation -= readings_CH2[index];
   Xaxis -= readings_CH3[index];
@@ -89,57 +72,26 @@ void loop()
   readings_CH3[index] = Xaxis_tmp;
   index = (index + 1) % numReadings;
 
-  
-  //flying curves including the motorthrust
-  double mLeft = 0;
-  double mRight = 0;
-  
-  if (Rotation > 0.1) {mLeft = Rotation;}
-  if (Rotation < -0.1) {mRight = Rotation;}
-  
-  MotorLout = ((Thrust - mLeft) * 90);
-  MotorRout = ((Thrust + mRight) * 90);
+  Motorsout = (Thrust * 90);
 
-  /* 
-   
-   Control Matrix for inverted Y fins
+  /* Control Matrix for inverted Y fins
    
                | Rotation  |  Xaxis  |
    ServoLeft   |    +      |    +    |
    ServoRight  |    +      |    -    |
-   ServoUp     |    -      |   N/A   |
-   
-   */
+   ServoUp     |    -      |   N/A   |     */
 
-  ServoLout = (((0.5 * Rotation) + Xaxis) * 90);
-
+  ServoLout = (((0.5 * Rotation) + Xaxis) * 90); //calculation of maneuvers
   ServoRout = (((0.5 * Rotation) - Xaxis) * 90);
-
   ServoUout = (-Rotation * 90);
 
-
-  MotorL.write(forServo(MotorLout));
-  MotorR.write(forServo(MotorRout));
+  Motors.write(forServo(Motorsout)); //sends commando to the servos
   ServoL.write(forServo(ServoLout));
   ServoR.write(forServo(ServoRout));
   ServoU.write(forServo(ServoUout));
 
-//led blinking
-unsigned long currentMillis = millis();
-  if(currentMillis - previousMillis > interval) {
-    // save the last time you blinked the LED 
-    previousMillis = currentMillis;   
+} //loop end
 
-    // if the LED is off turn it on and vice-versa:
-    if (ledState == LOW)
-      ledState = HIGH;
-    else
-      ledState = LOW;
-
-    // set the LED with the ledState of the variable:
-    digitalWrite(LEDpin, ledState);
-  }
-}
 
 inline long forServo(int s) {
 
