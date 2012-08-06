@@ -79,7 +79,7 @@ void loop()
   readings_CH3[index] = Xaxis_tmp;
   index = (index + 1) % numReadings;
 
-  Motorsout = (br(Thrust) * 90);
+  Motorsout = (br(Thrust));
 
   /* Control Matrix for inverted Y fins
    
@@ -109,11 +109,11 @@ inline double br(double in) {
 inline long forServo(int s) {
   if (s >= MAX_DEG) {
     s = MAX_DEG;
-  } //Setzt 90Â° als Obergrenze fÃ¼r den Servoausschlag
+  } //set´s MAX_DEG as maximum for the servo movement
   if (s <= -MAX_DEG) {
     s = -MAX_DEG;
-  } //Setzt -90Â° als Untergrenze fÃ¼r den Servoausschlag
-  return map(s,-MAX_DEG,MAX_DEG,MIN_A,MAX_A); //bringt die Werte in den korrekten Bereich von -90 bis 90 zu 10 bis 170
+  } //set´s -MAX_DEG as minimum for the servos
+  return map(s,-MAX_DEG,MAX_DEG,MIN_A,MAX_A); //maps the values from -90 to 90 to the necessary output 10 to 170
 }
 
 
