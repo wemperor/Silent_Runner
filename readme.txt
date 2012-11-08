@@ -1,13 +1,13 @@
-Project in work progress
+Project ready to go: www.silent-runner.net
 
-Code Status: almost ready, to be tested
-Airship Status: to be build, most parts are ordered
+Code Status: tested, working
+Airship Status: Maiden flight of the first ship at 31.10.2012
 
 
 The Silent_Runner project is a low cost, high performance airship project with open source components.
 
 Central control unit of the airship is an Arduino Pro Mini 5V/16Mhz, and the actual version of the code
-will be published in here.
+is published in here.
 
 
 contact and informations at:
