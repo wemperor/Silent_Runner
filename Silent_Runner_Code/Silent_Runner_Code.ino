@@ -14,7 +14,7 @@ Servo ServoU;  //Servo fin stern up
 #define ServoUpin 9 //Servo fin stern up
 
 // stuff for value correction via averaging
-const int numReadings = 10; //chose high values for smoother but slower control
+const int numReadings = 13; //chose high values for smoother but slower control
 double readings_CH2[numReadings];
 double readings_CH3[numReadings];
 int index = 0;             
