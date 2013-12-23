@@ -14,7 +14,7 @@ Servo ServoU;  //Servo fin stern up
 #define ServoUpin 9 //Servo fin stern up
 
 // stuff for value correction via averaging
-const int numReadings = 13; //chose high values for smoother but slower control
+const int numReadings = 7; //chose high values for smoother but slower control
 double readings_CH2[numReadings];
 double readings_CH3[numReadings];
 int index = 0;             
@@ -34,6 +34,8 @@ int ServoUout = 90; //Servo fin stern up
 #define MAX_DEG 90  
 
 #define A500TO90FACT 0.18
+
+#define YCORRECTFACT 0.5
 
 void setup()
 {
@@ -90,13 +92,23 @@ inline double br(double in) {
   return in / numReadings;
 }
 
+inline double quad(double in) {
+  return  sign(in) * in * in / (MAX_DEG * MAX_DEG);
+}
+
+inline double sign(double in) {
+  if(in > 0) return 1;
+  if(in < 0) return -1;
+  return 0;
+}
+
 
 inline long forServo(int s) {
   if (s >= MAX_DEG) {
     s = MAX_DEG;
-  } //set´s MAX_DEG as maximum for the servo movement
+  } //setÂ´s MAX_DEG as maximum for the servo movement
   if (s <= -MAX_DEG) {
     s = -MAX_DEG;
-  } //set´s -MAX_DEG as minimum for the servos
+  } //setÂ´s -MAX_DEG as minimum for the servos
   return map(s,-MAX_DEG,MAX_DEG,MIN_A,MAX_A); //maps the values from -90 to 90 to the necessary output 10 to 170
 }
