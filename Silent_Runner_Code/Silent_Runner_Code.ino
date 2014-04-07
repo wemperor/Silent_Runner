@@ -13,11 +13,7 @@ Servo ServoU;  //Servo fin stern up
 #define ServoRpin 6 //Servo fin stern right
 #define ServoUpin 9 //Servo fin stern up
 
-// stuff for value correction via averaging
-const int numReadings = 7; //chose high values for smoother but slower control
-double readings_CH2[numReadings];
-double readings_CH3[numReadings];
-int index = 0;             
+           
 
 //variables for the maneuver calculations
 double Rotation;
@@ -31,11 +27,19 @@ int ServoUout = 90; //Servo fin stern up
 //max range of the servos
 #define MIN_A 10
 #define MAX_A 170
-#define MAX_DEG 90  
+#define MAX_DEG 500  
+#define MAX_DEG_SQUARE 250000
+#define MIN_PWM 1500
 
-#define A500TO90FACT 0.18
+// divisor for correcting rudder
+#define YCORRECTDIV 2
 
-#define YCORRECTFACT 0.5
+// stuff for value correction via averaging
+#define NUMREADINGS 8 //chose high values for smoother but slower control
+
+int readings_CH2[ NUMREADINGS ] ;
+int readings_CH3[ NUMREADINGS ] ;
+int index = 0;  
 
 void setup()
 {
@@ -48,7 +52,7 @@ void setup()
   pinMode(CH3pin, INPUT);
 
   //setting the smoothing arrays to zero
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+  for (byte thisReading = 0; thisReading < NUMREADINGS; thisReading++) {
     readings_CH2[thisReading] = 0.0;
     readings_CH3[thisReading] = 0.0;
   }
@@ -59,15 +63,16 @@ void loop()
   Rotation -= readings_CH2[index];
   Xaxis -= readings_CH3[index];
 
-  double Rotation_tmp = -(((long)pulseIn(CH2pin, HIGH))-1500) * A500TO90FACT; 
-  double Xaxis_tmp = (((long)pulseIn(CH3pin, HIGH))-1500) * A500TO90FACT; 
+  // values range from -500 to 500
+  int Rotation_tmp = -(((long)pulseIn(CH2pin, HIGH))-MIN_PWM); 
+  int Xaxis_tmp = (((long)pulseIn(CH3pin, HIGH))-MIN_PWM); 
 
   Rotation += Rotation_tmp;
   Xaxis += Xaxis_tmp;
 
   readings_CH2[index] = Rotation_tmp;
   readings_CH3[index] = Xaxis_tmp;
-  index = (index + 1) % numReadings;
+  index = (index + 1) % NUMREADINGS;
 
    /* Control Matrix for inverted Y fins
    
@@ -75,9 +80,9 @@ void loop()
    ServoLeft   |    +      |    +    |
    ServoRight  |    +      |    -    |
    ServoUp     |    -      |   N/A   |     */
-
-  ServoLout = ((0.5 * br(Rotation)) + br(Xaxis)); //calculation of maneuvers
-  ServoRout = ((0.5 * br(Rotation)) - br(Xaxis));
+  
+  ServoLout = ((br(Rotation) / YCORRECTDIV) + cubic(br(Xaxis))); //calculation of maneuvers
+  ServoRout = ((br(Rotation) / YCORRECTDIV) - cubic(br(Xaxis)));
   ServoUout = (-br(Rotation));
 
   ServoL.write(forServo(ServoLout));
@@ -86,20 +91,13 @@ void loop()
 
 } //loop end
 
-
+// cubic function to fit into [MIN_DEG, MAX_DEG]
+inline int cubic(double in) {
+ return (in * in * in) / MAX_DEG_SQUARE;
+}
 // by readings 
-inline double br(double in) {
-  return in / numReadings;
-}
-
-inline double quad(double in) {
-  return  sign(in) * in * in / (MAX_DEG * MAX_DEG);
-}
-
-inline double sign(double in) {
-  if(in > 0) return 1;
-  if(in < 0) return -1;
-  return 0;
+inline int br(double in) {
+  return in / NUMREADINGS;
 }
 
 
