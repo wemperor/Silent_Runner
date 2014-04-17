@@ -31,7 +31,7 @@ int ServoUout = 90; //Servo fin stern up
 #define MAX_DEG_SQUARE 250000
 #define MIN_PWM 1500
 
-// divisor for correcting rudder
+// divisor for correcting rudder 
 #define YCORRECTDIV 2
 
 // stuff for value correction via averaging
