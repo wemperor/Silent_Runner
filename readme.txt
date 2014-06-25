@@ -1,7 +1,10 @@
 Project ready to go: www.silent-runner.net
 
 Code Status: tested, working
-Revision 23.12.2013: Works under Arduino 1.5.2, optimization for speed of reaction
+Revision 2014/06/25: Works under Arduino 1.0.1, optimization for speed of reaction
+New Version is dependent on the PinChangeInt.h library for free interrupts on DIO pins
+download at https://github.com/GreyGnome/PinChangeInt/archive/master.zip
+Does not compile properly in Arduino 1.5.2
 
 Airship Status: Maiden flight of the first ship at 31.10.2012
 
