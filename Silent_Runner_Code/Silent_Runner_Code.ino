@@ -3,17 +3,19 @@
 #include <PinChangeInt.h>
 
 //defines the servo object
-Servo ServoL;  //Servo fin stern left
-Servo ServoR;  //Servo fin stern right
-Servo ServoU;  //Servo fin stern up
+Servo ServoFL;  //Servo front left
+Servo ServoFR;  //Servo front right
+Servo ServoBL;  //Servo back left
+Servo ServoBR;  //Servo back right
 
 #define CH2pin 4 //CH2 = Left/Right Channel
 #define CH3pin 7 //CH3 = Up/Down Channel
 
 //defines the servo pins, they must be PWM
-#define ServoLpin 5 //Servo fin stern left
-#define ServoRpin 6 //Servo fin stern right
-#define ServoUpin 9 //Servo fin stern up
+#define ServoFLpin 3
+#define ServoFRpin 5 
+#define ServoBLpin 6
+#define ServoBRpin 9 
 
 //variables for the maneuver calculations
 int Rotation;
@@ -34,9 +36,10 @@ uint32_t ulXaxisStart;
 
 uint8_t updateChannel;
 
-int ServoLout = 1500; //Servo fin stern left
-int ServoRout = 1500; //Servo fin stern right
-int ServoUout = 1500; //Servo fin stern up
+int ServoFLout = 1500; 
+int ServoFRout = 1500; 
+int ServoBLout = 1500; 
+int ServoBRout = 1500; 
 
 //max range of the servos
 
@@ -51,9 +54,10 @@ int ServoUout = 1500; //Servo fin stern up
 void setup()
 {
 
-  ServoL.attach(ServoLpin);
-  ServoR.attach(ServoRpin);
-  ServoU.attach(ServoUpin);
+  ServoFL.attach(ServoFLpin);
+  ServoFR.attach(ServoFRpin);
+  ServoBL.attach(ServoBLpin);
+  ServoBR.attach(ServoBRpin);
 
   pinMode(CH2pin, INPUT);
   pinMode(CH3pin, INPUT);
@@ -111,21 +115,23 @@ void loop()
   
   updateChannel = 0;
 
-    /* Control Matrix for inverted Y fins
+    /* Control Matrix for quadropod fins
      
-     | Rotation  |  Xaxis  |
-     ServoLeft   |    +      |    +    |
-     ServoRight  |    +      |    -    |
-     ServoUp     |    -      |   N/A   |     */
+                      | NoseUp/Down  |  TurnLeft/Right  |
+     ServoFrontLeft   |       -      |        -         |
+     ServoFrontRight  |       -      |        +         |
+     ServoBackLeft    |       +      |        +         |     
+     ServoBackRight   |       +      |        -         | */
 
-    ServoLout = (Rotation / YCORRECTDIV) + Xaxis; //calculation of maneuvers
-    ServoRout = (Rotation / YCORRECTDIV) - Xaxis;
-    ServoUout = -(Rotation / UPCORRECTDIV);
+    ServoFLout = -(Rotation / YCORRECTDIV) - Xaxis; //calculation of maneuvers
+    ServoFRout = -(Rotation / YCORRECTDIV) + Xaxis;
+    ServoBLout =  (Rotation / YCORRECTDIV) + Xaxis;
+    ServoBRout =  (Rotation / YCORRECTDIV) - Xaxis;
 
-    ServoL.writeMicroseconds(forServo(ServoLout));
-    ServoR.writeMicroseconds(forServo(ServoRout));
-    ServoU.writeMicroseconds(forServo(ServoUout));
-  
+    ServoFL.writeMicroseconds(forServo(ServoFLout));
+    ServoFR.writeMicroseconds(forServo(ServoFRout));
+    ServoBL.writeMicroseconds(forServo(ServoBLout));
+    ServoBR.writeMicroseconds(forServo(ServoBRout));  
 
 } //loop end
 
@@ -164,4 +170,3 @@ inline long forServo(int s) {
   } //setÂ´s -MAX_DEG as minimum for the servos
   return s + MIN_PWM; //maps the values from -90 to 90 to the necessary output 10 to 170
 }
-
